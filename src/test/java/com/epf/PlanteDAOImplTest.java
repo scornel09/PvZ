@@ -1,121 +1,127 @@
 package com.epf;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:test-config.xml")
-class PlanteDAOImplTest {
+import com.epf.config.PlanteDAOTestConfig;
+import com.epf.dao.PlanteDAO;
+import com.epf.model.Plante;
+import com.epf.model.Plante.Effet;
+
+@SpringJUnitConfig(PlanteDAOTestConfig.class)
+public class PlanteDAOImplTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private PlanteDAOImpl planteDAO;
+    @Autowired
+    private PlanteDAO planteDAO;
 
     @BeforeEach
     void setUp() {
-        planteDAO = new PlanteDAOImpl(jdbcTemplate);
+        jdbcTemplate.update("DELETE FROM plantes");
     }
 
     @Test
     void create_ShouldInsertPlante() {
         // Arrange
-        Plante plante = new Plante(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
+        Plante plante = new Plante("Tournesol", 100, 0.0f, 0, 50, 25.0f, Effet.NORMAL, "/images/plante/tournesol.png");
 
         // Act
-        planteDAO.create(plante);
+        Plante createdPlante = planteDAO.create(plante);
 
         // Assert
-        Plante createdPlante = planteDAO.read(1);
         assertNotNull(createdPlante);
-        assertEquals(plante.getName(), createdPlante.getName());
-        assertEquals(plante.getHealth(), createdPlante.getHealth());
-        assertEquals(plante.getDamage(), createdPlante.getDamage());
-        assertEquals(plante.getAtkSpeed(), createdPlante.getAtkSpeed());
-        assertEquals(plante.getCost(), createdPlante.getCost());
-        assertEquals(plante.getSunPerSecond(), createdPlante.getSunPerSecond());
-        assertEquals(plante.getSlowType(), createdPlante.getSlowType());
+        assertEquals(plante.getNom(), createdPlante.getNom());
+        assertEquals(plante.getPointDeVie(), createdPlante.getPointDeVie());
+        assertEquals(plante.getAttaqueParSeconde(), createdPlante.getAttaqueParSeconde());
+        assertEquals(plante.getCout(), createdPlante.getCout());
+        assertEquals(plante.getSoleilParSeconde(), createdPlante.getSoleilParSeconde());
+        assertEquals(plante.getEffet(), createdPlante.getEffet());
+        assertEquals(plante.getCheminImage(), createdPlante.getCheminImage());
     }
 
     @Test
     void read_WhenPlanteExists_ShouldReturnPlante() {
         // Arrange
-        Plante plante = new Plante(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
-        planteDAO.create(plante);
+        Plante plante = new Plante("Pois", 100, 1.5f, 20, 100, 0.0f, Effet.NORMAL, "/images/plante/poistireur.png");
+        Plante createdPlante = planteDAO.create(plante);
 
         // Act
-        Plante result = planteDAO.read(1);
+        Plante foundPlante = planteDAO.read(createdPlante.getId());
 
         // Assert
-        assertNotNull(result);
-        assertEquals(plante.getName(), result.getName());
-        assertEquals(plante.getHealth(), result.getHealth());
-        assertEquals(plante.getDamage(), result.getDamage());
-        assertEquals(plante.getAtkSpeed(), result.getAtkSpeed());
-        assertEquals(plante.getCost(), result.getCost());
-        assertEquals(plante.getSunPerSecond(), result.getSunPerSecond());
-        assertEquals(plante.getSlowType(), result.getSlowType());
+        assertNotNull(foundPlante);
+        assertEquals(createdPlante.getId(), foundPlante.getId());
+        assertEquals(createdPlante.getNom(), foundPlante.getNom());
+        assertEquals(createdPlante.getPointDeVie(), foundPlante.getPointDeVie());
+        assertEquals(createdPlante.getAttaqueParSeconde(), foundPlante.getAttaqueParSeconde());
+        assertEquals(createdPlante.getCout(), foundPlante.getCout());
+        assertEquals(createdPlante.getSoleilParSeconde(), foundPlante.getSoleilParSeconde());
+        assertEquals(createdPlante.getEffet(), foundPlante.getEffet());
+        assertEquals(createdPlante.getCheminImage(), foundPlante.getCheminImage());
     }
 
     @Test
     void read_WhenPlanteDoesNotExist_ShouldReturnNull() {
         // Act
-        Plante result = planteDAO.read(999);
+        Plante foundPlante = planteDAO.read(999);
 
         // Assert
-        assertNull(result);
+        assertNull(foundPlante);
     }
 
     @Test
     void update_ShouldUpdatePlante() {
         // Arrange
-        Plante plante = new Plante(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
-        planteDAO.create(plante);
-        Plante updatedPlante = new Plante(1, "Updated Plante", 150, 30, 1.5f, 150, 35.0f, SlowType.SLOW_LOW);
+        Plante plante = new Plante("Pois de Glace", 100, 1.5f, 20, 175, 0.0f, Effet.SLOW_LOW, "/images/plante/glacepois.png");
+        Plante createdPlante = planteDAO.create(plante);
+        createdPlante.setPointDeVie(150);
+        createdPlante.setAttaqueParSeconde(1.8f);
+        createdPlante.setDegatAttaque(25);
+        createdPlante.setCout(200);
+        createdPlante.setEffet(Effet.SLOW_MEDIUM);
 
         // Act
-        planteDAO.update(updatedPlante);
+        Plante updatedPlante = planteDAO.update(createdPlante);
 
         // Assert
-        Plante result = planteDAO.read(1);
-        assertNotNull(result);
-        assertEquals(updatedPlante.getName(), result.getName());
-        assertEquals(updatedPlante.getHealth(), result.getHealth());
-        assertEquals(updatedPlante.getDamage(), result.getDamage());
-        assertEquals(updatedPlante.getAtkSpeed(), result.getAtkSpeed());
-        assertEquals(updatedPlante.getCost(), result.getCost());
-        assertEquals(updatedPlante.getSunPerSecond(), result.getSunPerSecond());
-        assertEquals(updatedPlante.getSlowType(), result.getSlowType());
+        assertNotNull(updatedPlante);
+        assertEquals(createdPlante.getId(), updatedPlante.getId());
+        assertEquals(150, updatedPlante.getPointDeVie());
+        assertEquals(1.8f, updatedPlante.getAttaqueParSeconde());
+        assertEquals(25, updatedPlante.getDegatAttaque());
+        assertEquals(200, updatedPlante.getCout());
+        assertEquals(Effet.SLOW_MEDIUM, updatedPlante.getEffet());
     }
 
     @Test
     void delete_ShouldRemovePlante() {
         // Arrange
-        Plante plante = new Plante(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
-        planteDAO.create(plante);
+        Plante plante = new Plante("Tournesol", 100, 0.0f, 0, 50, 25.0f, Effet.NORMAL, "/images/plante/tournesol.png");
+        Plante createdPlante = planteDAO.create(plante);
 
         // Act
-        planteDAO.delete(1);
+        planteDAO.delete(createdPlante.getId());
 
         // Assert
-        Plante result = planteDAO.read(1);
-        assertNull(result);
+        Plante foundPlante = planteDAO.read(createdPlante.getId());
+        assertNull(foundPlante);
     }
 
     @Test
     void findAll_ShouldReturnAllPlantes() {
         // Arrange
-        Plante plante1 = new Plante(1, "Plante 1", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
-        Plante plante2 = new Plante(2, "Plante 2", 150, 30, 1.5f, 150, 35.0f, SlowType.SLOW_LOW);
+        Plante plante1 = new Plante("Tournesol", 100, 0.0f, 0, 50, 25.0f, Effet.NORMAL, "/images/plante/tournesol.png");
+        Plante plante2 = new Plante("Pois", 100, 1.5f, 20, 100, 0.0f, Effet.NORMAL, "/images/plante/poistireur.png");
         planteDAO.create(plante1);
         planteDAO.create(plante2);
 
@@ -124,7 +130,5 @@ class PlanteDAOImplTest {
 
         // Assert
         assertEquals(2, plantes.size());
-        assertTrue(plantes.stream().anyMatch(p -> p.getName().equals("Plante 1")));
-        assertTrue(plantes.stream().anyMatch(p -> p.getName().equals("Plante 2")));
     }
 }

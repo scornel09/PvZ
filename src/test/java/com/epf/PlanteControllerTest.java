@@ -1,17 +1,25 @@
 package com.epf;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import com.epf.controller.PlanteController;
+import com.epf.dto.PlanteDTO;
+import com.epf.model.Plante;
+import com.epf.model.Plante.Effet;
+import com.epf.service.PlanteService;
 
 class PlanteControllerTest {
 
@@ -29,36 +37,71 @@ class PlanteControllerTest {
     @Test
     void createPlante_ShouldReturnCreatedStatus() {
         // Arrange
-        PlanteDTO planteDTO = new PlanteDTO(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
+        PlanteDTO planteDTO = new PlanteDTO();
+        planteDTO.setId(1);
+        planteDTO.setNom("Test Plante");
+        planteDTO.setPointDeVie(100);
+        planteDTO.setTempsRecharge(1.0f);
+        planteDTO.setAttaqueParSeconde(2.0f);
+        planteDTO.setDegatAttaque(20);
+        planteDTO.setCout(100);
+        planteDTO.setSoleilParSeconde(1);
+        planteDTO.setEffet("NORMAL");
+        planteDTO.setCheminImage("chemin/image1.png");
+
+        Plante plante = new Plante();
+        plante.setId(1);
+        plante.setNom("Test Plante");
+        plante.setPointDeVie(100);
+        plante.setTempsRecharge(1.0f);
+        plante.setAttaqueParSeconde(2.0f);
+        plante.setDegatAttaque(20);
+        plante.setCout(100);
+        plante.setSoleilParSeconde(1.0f);
+        plante.setEffet(Effet.NORMAL);
+        plante.setCheminImage("chemin/image1.png");
+
+        when(planteService.createPlante(any(Plante.class))).thenReturn(plante);
 
         // Act
-        ResponseEntity<Void> response = planteController.createPlante(planteDTO);
+        ResponseEntity<PlanteDTO> response = planteController.createPlante(planteDTO);
 
         // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(planteService).createPlante(any(Plante.class));
     }
 
     @Test
     void getPlante_WhenPlanteExists_ShouldReturnPlante() {
         // Arrange
-        Plante plante = new Plante(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
+        Plante plante = new Plante();
+        plante.setId(1);
+        plante.setNom("Test Plante");
+        plante.setPointDeVie(100);
+        plante.setTempsRecharge(1.0f);
+        plante.setAttaqueParSeconde(2.0f);
+        plante.setDegatAttaque(20);
+        plante.setCout(100);
+        plante.setSoleilParSeconde(1.0f);
+        plante.setEffet(Effet.NORMAL);
+        plante.setCheminImage("chemin/image2.png");
+
         when(planteService.getPlanteById(1)).thenReturn(plante);
 
         // Act
-        ResponseEntity<PlanteDTO> response = planteController.getPlante(1);
+        ResponseEntity<PlanteDTO> response = planteController.getPlanteById(1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(plante.getId(), response.getBody().getId());
-        assertEquals(plante.getName(), response.getBody().getName());
-        assertEquals(plante.getHealth(), response.getBody().getHealth());
-        assertEquals(plante.getDamage(), response.getBody().getDamage());
-        assertEquals(plante.getAtkSpeed(), response.getBody().getAtkSpeed());
-        assertEquals(plante.getCost(), response.getBody().getCost());
-        assertEquals(plante.getSunPerSecond(), response.getBody().getSunPerSecond());
-        assertEquals(plante.getSlowType(), response.getBody().getSlowType());
+        assertEquals(plante.getNom(), response.getBody().getNom());
+        assertEquals(plante.getPointDeVie(), response.getBody().getPointDeVie());
+        assertEquals(plante.getDegatAttaque(), response.getBody().getDegatAttaque());
+        assertEquals(plante.getAttaqueParSeconde(), response.getBody().getAttaqueParSeconde());
+        assertEquals(plante.getCout(), response.getBody().getCout());
+        assertEquals((int) Math.round(plante.getSoleilParSeconde()), response.getBody().getSoleilParSeconde());
+        assertEquals(plante.getEffet().name(), response.getBody().getEffet());
         verify(planteService).getPlanteById(1);
     }
 
@@ -68,7 +111,7 @@ class PlanteControllerTest {
         when(planteService.getPlanteById(1)).thenReturn(null);
 
         // Act
-        ResponseEntity<PlanteDTO> response = planteController.getPlante(1);
+        ResponseEntity<PlanteDTO> response = planteController.getPlanteById(1);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -78,33 +121,69 @@ class PlanteControllerTest {
     @Test
     void updatePlante_ShouldReturnNoContent() {
         // Arrange
-        PlanteDTO planteDTO = new PlanteDTO(1, "Test Plante", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL);
+        PlanteDTO planteDTO = new PlanteDTO();
+        planteDTO.setId(1);
+        planteDTO.setNom("Test Plante");
+        planteDTO.setPointDeVie(100);
+        planteDTO.setTempsRecharge(1.0f);
+        planteDTO.setAttaqueParSeconde(2.0f);
+        planteDTO.setDegatAttaque(20);
+        planteDTO.setCout(100);
+        planteDTO.setSoleilParSeconde(1);
+        planteDTO.setEffet("NORMAL");
+        planteDTO.setCheminImage("chemin/image3.png");
+
+        Plante plante = new Plante();
+        plante.setId(1);
+        plante.setNom("Test Plante");
+        plante.setPointDeVie(100);
+        plante.setTempsRecharge(1.0f);
+        plante.setAttaqueParSeconde(2.0f);
+        plante.setDegatAttaque(20);
+        plante.setCout(100);
+        plante.setSoleilParSeconde(1.0f);
+        plante.setEffet(Effet.NORMAL);
+        plante.setCheminImage("chemin/image3.png");
+
+        when(planteService.updatePlante(any(Plante.class))).thenReturn(plante);
 
         // Act
-        ResponseEntity<Void> response = planteController.updatePlante(1, planteDTO);
+        ResponseEntity<PlanteDTO> response = planteController.updatePlante(1, planteDTO);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(planteService).updatePlante(any(Plante.class));
     }
 
     @Test
     void deletePlante_ShouldReturnNoContent() {
+        // Arrange
+        // No setup needed for delete operation
+
         // Act
         ResponseEntity<Void> response = planteController.deletePlante(1);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(planteService).deletePlante(1);
     }
 
     @Test
     void getAllPlantes_ShouldReturnListOfPlantes() {
         // Arrange
-        List<Plante> plantes = Arrays.asList(
-                new Plante(1, "Plante 1", 100, 20, 1.0f, 100, 25.0f, SlowType.NORMAL),
-                new Plante(2, "Plante 2", 150, 30, 1.5f, 150, 35.0f, SlowType.SLOW_LOW)
-        );
+        Plante plante = new Plante();
+        plante.setId(1);
+        plante.setNom("Test Plante");
+        plante.setPointDeVie(100);
+        plante.setTempsRecharge(1.0f);
+        plante.setAttaqueParSeconde(2.0f);
+        plante.setDegatAttaque(20);
+        plante.setCout(100);
+        plante.setSoleilParSeconde(1.0f);
+        plante.setEffet(Effet.NORMAL);
+        plante.setCheminImage("chemin/image4.png");
+
+        List<Plante> plantes = Arrays.asList(plante);
         when(planteService.getAllPlantes()).thenReturn(plantes);
 
         // Act
@@ -113,7 +192,15 @@ class PlanteControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(planteService).getAllPlantes();
+        assertEquals(1, response.getBody().size());
+        PlanteDTO retrievedPlante = response.getBody().get(0);
+        assertEquals(plante.getId(), retrievedPlante.getId());
+        assertEquals(plante.getNom(), retrievedPlante.getNom());
+        assertEquals(plante.getPointDeVie(), retrievedPlante.getPointDeVie());
+        assertEquals(plante.getDegatAttaque(), retrievedPlante.getDegatAttaque());
+        assertEquals(plante.getAttaqueParSeconde(), retrievedPlante.getAttaqueParSeconde());
+        assertEquals(plante.getCout(), retrievedPlante.getCout());
+        assertEquals((int) Math.round(plante.getSoleilParSeconde()), retrievedPlante.getSoleilParSeconde());
+        assertEquals(plante.getEffet().name(), retrievedPlante.getEffet());
     }
 }

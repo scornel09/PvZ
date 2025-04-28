@@ -1,17 +1,24 @@
 package com.epf;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import com.epf.controller.MapController;
+import com.epf.dto.MapDTO;
+import com.epf.model.Map;
+import com.epf.service.MapService;
 
 class MapControllerTest {
 
@@ -29,10 +36,13 @@ class MapControllerTest {
     @Test
     void createMap_ShouldReturnCreatedStatus() {
         // Arrange
-        MapDTO mapDTO = new MapDTO(1, 5, 9);
+        MapDTO mapDTO = new MapDTO(1, 5, 9, "chemin/image1.png");
+        Map map = new Map(5, 9, "chemin/image1.png");
+        map.setId(1);
+        when(mapService.createMap(any(Map.class))).thenReturn(map);
 
         // Act
-        ResponseEntity<Void> response = mapController.createMap(mapDTO);
+        ResponseEntity<MapDTO> response = mapController.createMap(mapDTO);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -42,7 +52,7 @@ class MapControllerTest {
     @Test
     void getMap_WhenMapExists_ShouldReturnMap() {
         // Arrange
-        Map map = new Map(1, 5, 9);
+        Map map = new Map(5, 9, "chemin/image2.png");
         when(mapService.getMapById(1)).thenReturn(map);
 
         // Act
@@ -73,13 +83,16 @@ class MapControllerTest {
     @Test
     void updateMap_ShouldReturnNoContent() {
         // Arrange
-        MapDTO mapDTO = new MapDTO(1, 5, 9);
+        MapDTO mapDTO = new MapDTO(1, 5, 9, "chemin/image3.png");
+        Map map = new Map(5, 9, "chemin/image3.png");
+        map.setId(1);
+        when(mapService.updateMap(any(Map.class))).thenReturn(map);
 
         // Act
-        ResponseEntity<Void> response = mapController.updateMap(1, mapDTO);
+        ResponseEntity<MapDTO> response = mapController.updateMap(1, mapDTO);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(mapService).updateMap(any(Map.class));
     }
 
@@ -97,8 +110,8 @@ class MapControllerTest {
     void getAllMaps_ShouldReturnListOfMaps() {
         // Arrange
         List<Map> maps = Arrays.asList(
-                new Map(1, 5, 9),
-                new Map(2, 6, 10)
+                new Map(5, 9, "chemin/image4.png"),
+                new Map(6, 10, "chemin/image5.png")
         );
         when(mapService.getAllMaps()).thenReturn(maps);
 

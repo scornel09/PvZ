@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.epf.MapServiceImplTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s - in com.epf.MapServiceImplTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.137 s -- in com.epf.MapServiceImplTest

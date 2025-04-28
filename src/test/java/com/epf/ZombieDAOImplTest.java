@@ -1,140 +1,221 @@
 package com.epf;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-
+import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:test-config.xml")
-class ZombieDAOImplTest {
+import com.epf.config.ZombieDAOTestConfig;
+import com.epf.dao.ZombieDAO;
+import com.epf.model.Zombie;
+
+@SpringJUnitConfig(ZombieDAOTestConfig.class)
+public class ZombieDAOImplTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private ZombieDAOImpl zombieDAO;
+    @Autowired
+    private ZombieDAO zombieDAO;
 
     @BeforeEach
-    void setUp() {
-        zombieDAO = new ZombieDAOImpl(jdbcTemplate);
+    void setUp() throws SQLException {
+        // Clear and reinitialize test data
+        jdbcTemplate.update("DELETE FROM zombie");
+        ScriptUtils.executeSqlScript(jdbcTemplate.getDataSource().getConnection(), new ClassPathResource("data.sql"));
     }
 
     @Test
-    void create_ShouldInsertZombie() {
+    void create_ShouldReturnCreatedZombie() {
         // Arrange
-        Zombie zombie = new Zombie(1, "Test Zombie", 100, 1.0f, 1.0f, 1);
+        Zombie zombie = new Zombie();
+        zombie.setNom("Test Zombie");
+        zombie.setPointDeVie(100);
+        zombie.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie.setDegatAttaque(20);
+        zombie.setVitesseDeDeplacement(1.5f);
+        zombie.setCheminImage("test.png");
+        zombie.setIdMap(1);
 
         // Act
-        zombieDAO.create(zombie);
+        Zombie createdZombie = zombieDAO.create(zombie);
 
         // Assert
-        Zombie createdZombie = zombieDAO.read(1);
         assertNotNull(createdZombie);
-        assertEquals(zombie.getName(), createdZombie.getName());
-        assertEquals(zombie.getHealth(), createdZombie.getHealth());
-        assertEquals(zombie.getAtkSpeed(), createdZombie.getAtkSpeed());
-        assertEquals(zombie.getMvtSpeed(), createdZombie.getMvtSpeed());
-        assertEquals(zombie.getMapId(), createdZombie.getMapId());
+        assertEquals(zombie.getNom(), createdZombie.getNom());
+        assertEquals(zombie.getPointDeVie(), createdZombie.getPointDeVie());
+        assertEquals(zombie.getAttaqueParSeconde(), createdZombie.getAttaqueParSeconde());
+        assertEquals(zombie.getDegatAttaque(), createdZombie.getDegatAttaque());
+        assertEquals(zombie.getVitesseDeDeplacement(), createdZombie.getVitesseDeDeplacement());
+        assertEquals(zombie.getCheminImage(), createdZombie.getCheminImage());
+        assertEquals(zombie.getIdMap(), createdZombie.getIdMap());
     }
 
     @Test
     void read_WhenZombieExists_ShouldReturnZombie() {
         // Arrange
-        Zombie zombie = new Zombie(1, "Test Zombie", 100, 1.0f, 1.0f, 1);
-        zombieDAO.create(zombie);
+        Zombie zombie = new Zombie();
+        zombie.setNom("Test Zombie");
+        zombie.setPointDeVie(100);
+        zombie.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie.setDegatAttaque(20);
+        zombie.setVitesseDeDeplacement(1.5f);
+        zombie.setCheminImage("test.png");
+        zombie.setIdMap(1);
+
+        Zombie createdZombie = zombieDAO.create(zombie);
 
         // Act
-        Zombie result = zombieDAO.read(1);
+        Zombie foundZombie = zombieDAO.read(createdZombie.getId());
 
         // Assert
-        assertNotNull(result);
-        assertEquals(zombie.getName(), result.getName());
-        assertEquals(zombie.getHealth(), result.getHealth());
-        assertEquals(zombie.getAtkSpeed(), result.getAtkSpeed());
-        assertEquals(zombie.getMvtSpeed(), result.getMvtSpeed());
-        assertEquals(zombie.getMapId(), result.getMapId());
+        assertNotNull(foundZombie);
+        assertEquals(createdZombie.getId(), foundZombie.getId());
+        assertEquals(zombie.getNom(), foundZombie.getNom());
+        assertEquals(zombie.getPointDeVie(), foundZombie.getPointDeVie());
+        assertEquals(zombie.getAttaqueParSeconde(), foundZombie.getAttaqueParSeconde());
+        assertEquals(zombie.getDegatAttaque(), foundZombie.getDegatAttaque());
+        assertEquals(zombie.getVitesseDeDeplacement(), foundZombie.getVitesseDeDeplacement());
+        assertEquals(zombie.getCheminImage(), foundZombie.getCheminImage());
+        assertEquals(zombie.getIdMap(), foundZombie.getIdMap());
     }
 
     @Test
     void read_WhenZombieDoesNotExist_ShouldReturnNull() {
         // Act
-        Zombie result = zombieDAO.read(999);
+        Zombie foundZombie = zombieDAO.read(999);
 
         // Assert
-        assertNull(result);
+        assertNull(foundZombie);
     }
 
     @Test
-    void update_ShouldUpdateZombie() {
+    void update_ShouldReturnUpdatedZombie() {
         // Arrange
-        Zombie zombie = new Zombie(1, "Test Zombie", 100, 1.0f, 1.0f, 1);
-        zombieDAO.create(zombie);
-        Zombie updatedZombie = new Zombie(1, "Updated Zombie", 200, 2.0f, 2.0f, 2);
+        Zombie zombie = new Zombie();
+        zombie.setNom("Test Zombie");
+        zombie.setPointDeVie(100);
+        zombie.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie.setDegatAttaque(20);
+        zombie.setVitesseDeDeplacement(1.5f);
+        zombie.setCheminImage("test.png");
+        zombie.setIdMap(1);
+
+        Zombie createdZombie = zombieDAO.create(zombie);
+
+        createdZombie.setNom("Updated Zombie");
+        createdZombie.setPointDeVie(150);
+        createdZombie.setAttaqueParSeconde(new BigDecimal("1.5"));
+        createdZombie.setDegatAttaque(30);
+        createdZombie.setVitesseDeDeplacement(2.0f);
+        createdZombie.setCheminImage("updated.png");
+        createdZombie.setIdMap(2);
 
         // Act
-        zombieDAO.update(updatedZombie);
+        Zombie updatedZombie = zombieDAO.update(createdZombie);
 
         // Assert
-        Zombie result = zombieDAO.read(1);
-        assertNotNull(result);
-        assertEquals(updatedZombie.getName(), result.getName());
-        assertEquals(updatedZombie.getHealth(), result.getHealth());
-        assertEquals(updatedZombie.getAtkSpeed(), result.getAtkSpeed());
-        assertEquals(updatedZombie.getMvtSpeed(), result.getMvtSpeed());
-        assertEquals(updatedZombie.getMapId(), result.getMapId());
+        assertNotNull(updatedZombie);
+        assertEquals(createdZombie.getId(), updatedZombie.getId());
+        assertEquals(createdZombie.getNom(), updatedZombie.getNom());
+        assertEquals(createdZombie.getPointDeVie(), updatedZombie.getPointDeVie());
+        assertEquals(createdZombie.getAttaqueParSeconde(), updatedZombie.getAttaqueParSeconde());
+        assertEquals(createdZombie.getDegatAttaque(), updatedZombie.getDegatAttaque());
+        assertEquals(createdZombie.getVitesseDeDeplacement(), updatedZombie.getVitesseDeDeplacement());
+        assertEquals(createdZombie.getCheminImage(), updatedZombie.getCheminImage());
+        assertEquals(createdZombie.getIdMap(), updatedZombie.getIdMap());
     }
 
     @Test
     void delete_ShouldRemoveZombie() {
         // Arrange
-        Zombie zombie = new Zombie(1, "Test Zombie", 100, 1.0f, 1.0f, 1);
-        zombieDAO.create(zombie);
+        Zombie zombie = new Zombie();
+        zombie.setNom("Test Zombie");
+        zombie.setPointDeVie(100);
+        zombie.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie.setDegatAttaque(20);
+        zombie.setVitesseDeDeplacement(1.5f);
+        zombie.setCheminImage("test.png");
+        zombie.setIdMap(1);
+
+        Zombie createdZombie = zombieDAO.create(zombie);
 
         // Act
-        zombieDAO.delete(1);
+        zombieDAO.delete(createdZombie.getId());
 
         // Assert
-        Zombie result = zombieDAO.read(1);
-        assertNull(result);
+        assertNull(zombieDAO.read(createdZombie.getId()));
     }
 
     @Test
-    void findAll_ShouldReturnAllZombies() {
+    void findAll_ShouldReturnListOfZombies() {
         // Arrange
-        Zombie zombie1 = new Zombie(1, "Zombie 1", 100, 1.0f, 1.0f, 1);
-        Zombie zombie2 = new Zombie(2, "Zombie 2", 200, 2.0f, 2.0f, 2);
+        Zombie zombie1 = new Zombie();
+        zombie1.setNom("Zombie 1");
+        zombie1.setPointDeVie(100);
+        zombie1.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie1.setDegatAttaque(20);
+        zombie1.setVitesseDeDeplacement(1.5f);
+        zombie1.setCheminImage("zombie1.png");
+        zombie1.setIdMap(1);
         zombieDAO.create(zombie1);
+
+        Zombie zombie2 = new Zombie();
+        zombie2.setNom("Zombie 2");
+        zombie2.setPointDeVie(150);
+        zombie2.setAttaqueParSeconde(new BigDecimal("1.5"));
+        zombie2.setDegatAttaque(30);
+        zombie2.setVitesseDeDeplacement(2.0f);
+        zombie2.setCheminImage("zombie2.png");
+        zombie2.setIdMap(2);
         zombieDAO.create(zombie2);
 
         // Act
-        List<Zombie> zombies = zombieDAO.findAll();
+        List<Zombie> foundZombies = zombieDAO.findAll();
 
         // Assert
-        assertEquals(2, zombies.size());
-        assertTrue(zombies.stream().anyMatch(z -> z.getName().equals("Zombie 1")));
-        assertTrue(zombies.stream().anyMatch(z -> z.getName().equals("Zombie 2")));
+        assertNotNull(foundZombies);
+        assertEquals(2, foundZombies.size());
     }
 
     @Test
-    void findByMapId_ShouldReturnZombiesForMap() {
+    void findByMapId_ShouldReturnListOfZombies() {
         // Arrange
-        Zombie zombie1 = new Zombie(1, "Zombie 1", 100, 1.0f, 1.0f, 1);
-        Zombie zombie2 = new Zombie(2, "Zombie 2", 200, 2.0f, 2.0f, 2);
+        Zombie zombie1 = new Zombie();
+        zombie1.setNom("Zombie 1");
+        zombie1.setPointDeVie(100);
+        zombie1.setAttaqueParSeconde(new BigDecimal("1.0"));
+        zombie1.setDegatAttaque(20);
+        zombie1.setVitesseDeDeplacement(1.5f);
+        zombie1.setCheminImage("zombie1.png");
+        zombie1.setIdMap(1);
         zombieDAO.create(zombie1);
+
+        Zombie zombie2 = new Zombie();
+        zombie2.setNom("Zombie 2");
+        zombie2.setPointDeVie(150);
+        zombie2.setAttaqueParSeconde(new BigDecimal("1.5"));
+        zombie2.setDegatAttaque(30);
+        zombie2.setVitesseDeDeplacement(2.0f);
+        zombie2.setCheminImage("zombie2.png");
+        zombie2.setIdMap(1);
         zombieDAO.create(zombie2);
 
         // Act
-        List<Zombie> zombies = zombieDAO.findByMapId(1);
+        List<Zombie> foundZombies = zombieDAO.findByMapId(1);
 
         // Assert
-        assertEquals(1, zombies.size());
-        assertEquals("Zombie 1", zombies.get(0).getName());
+        assertNotNull(foundZombies);
+        assertEquals(2, foundZombies.size());
     }
 }

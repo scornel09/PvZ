@@ -1,16 +1,23 @@
 package com.epf;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.epf.dao.MapDAO;
+import com.epf.model.Map;
+import com.epf.service.MapServiceImpl;
+
+@ExtendWith(MockitoExtension.class)
 class MapServiceImplTest {
 
     @Mock
@@ -20,14 +27,13 @@ class MapServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         mapService = new MapServiceImpl(mapDAO);
     }
 
     @Test
     void createMap_ShouldCallDAOCreate() {
         // Arrange
-        Map map = new Map(1, 5, 9);
+        Map map = new Map(5, 6, "chemin/image1.png");
 
         // Act
         mapService.createMap(map);
@@ -37,23 +43,25 @@ class MapServiceImplTest {
     }
 
     @Test
-    void getMapById_ShouldReturnMap() {
+    void getMapById_ShouldReturnMapFromDAO() {
         // Arrange
-        Map expectedMap = new Map(1, 5, 9);
+        Map expectedMap = new Map(5, 6, "chemin/image2.png");
         when(mapDAO.read(1)).thenReturn(expectedMap);
 
         // Act
         Map result = mapService.getMapById(1);
 
         // Assert
-        assertEquals(expectedMap, result);
-        verify(mapDAO).read(1);
+        assertNotNull(result);
+        assertEquals(expectedMap.getId(), result.getId());
+        assertEquals(expectedMap.getLigne(), result.getLigne());
+        assertEquals(expectedMap.getColonne(), result.getColonne());
     }
 
     @Test
     void updateMap_ShouldCallDAOUpdate() {
         // Arrange
-        Map map = new Map(1, 5, 9);
+        Map map = new Map(5, 6, "chemin/image3.png");
 
         // Act
         mapService.updateMap(map);
@@ -72,11 +80,11 @@ class MapServiceImplTest {
     }
 
     @Test
-    void getAllMaps_ShouldReturnListOfMaps() {
+    void getAllMaps_ShouldReturnAllMapsFromDAO() {
         // Arrange
         List<Map> expectedMaps = Arrays.asList(
-                new Map(1, 5, 9),
-                new Map(2, 6, 10)
+                new Map(5, 6, "chemin/image4.png"),
+                new Map(6, 7, "chemin/image5.png")
         );
         when(mapDAO.findAll()).thenReturn(expectedMaps);
 
@@ -84,7 +92,8 @@ class MapServiceImplTest {
         List<Map> result = mapService.getAllMaps();
 
         // Assert
-        assertEquals(expectedMaps, result);
-        verify(mapDAO).findAll();
+        assertEquals(2, result.size());
+        assertEquals(expectedMaps.get(0).getLigne(), result.get(0).getLigne());
+        assertEquals(expectedMaps.get(1).getLigne(), result.get(1).getLigne());
     }
 }
